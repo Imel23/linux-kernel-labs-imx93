@@ -2,21 +2,21 @@
 
 ## Préparer le noyau
 
-Les patches s’appliquent, dans l’ordre, sur le tag Linux stable `v6.12.103`. Depuis la racine du portfolio, utiliser une copie de travail Linux propre.
+Les patches du dépôt `linux-kernel-labs-imx93` s’appliquent, dans l’ordre, sur le tag Linux stable `v6.12.103`. Depuis la racine du dépôt, utiliser une copie de travail Linux propre.
 
 ```bash
-portfolio="$PWD"
+lab_repo="$PWD"
 kernel=/chemin/vers/linux
 git -C "$kernel" switch --detach v6.12.103
 
-for patch in "$portfolio"/kernel-patches/*.patch; do
+for patch in "$lab_repo"/kernel-patches/*.patch; do
     git -C "$kernel" apply "$patch" || exit 1
 done
 
 export ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
 make -C "$kernel" imx93_frdm_defconfig
 make -C "$kernel" -j"$(nproc)" Image dtbs modules
-make -C "$portfolio" KDIR="$kernel"
+make -C "$lab_repo" KDIR="$kernel"
 ```
 
 Le premier patch reprend le support de base i.MX93 FRDM, adapté de celui fourni par Bootlin. Le deuxième ajoute la configuration du lab, l’intégration de Hello dans l’arbre noyau, le binding et le Device Tree du Nunchuk. Le troisième ajoute les broches et les nœuds de LPUART3 et LPUART8.
