@@ -1,31 +1,31 @@
-# Pilotes Linux embarqués sur i.MX93 FRDM
+# Embedded Linux Drivers on i.MX93 FRDM
 
-Travaux pratiques réalisés par **Imel23** pendant la formation Bootlin *Linux Kernel and Driver Development*. J’ai compilé un noyau Linux 6.12 pour la carte NXP i.MX93 FRDM, adapté son Device Tree et développé trois modules en C. [Formation Bootlin](https://bootlin.com/training/linux-kernel/)
+Lab projects by **Imel23** from Bootlin's *Linux Kernel and Driver Development* training. I cross-compiled Linux 6.12 for the NXP i.MX93 FRDM board, adapted its Device Tree, and wrote three kernel modules in C. [Bootlin training](https://bootlin.com/training/linux-kernel/)
 
-| Réalisation | Ce qu’elle met en pratique |
+| Project | What it covers |
 | --- | --- |
-| [Module Hello](modules/hello/hello_version.c) | Chargement et déchargement d’un module, paramètre `who`, version du noyau et journalisation. |
-| [Pilote Nunchuk](modules/nunchuk/nunchuk.c) | Initialisation du joystick Wii sur LPI2C4 à l’adresse `0x52`, interrogation toutes les 50 ms et remontée des axes X/Y et des boutons C/Z via le sous-système Input. |
-| [Pilote série LPUART](modules/serial/serial.c) | Configuration de LPUART3 et LPUART8 via leurs registres MMIO, émission à 115 200 bauds et exposition d’un périphérique `miscdevice` par port. Deux [outils](tools/) lisent et remettent à zéro le compteur d’émission via `ioctl`. |
-| [Intégration carte](kernel-patches/) | Support i.MX93 FRDM, configuration ARM64, description du Nunchuk et multiplexage des broches I²C et UART. |
+| [Hello module](modules/hello/hello_version.c) | Module loading and unloading, the `who` module parameter, and kernel version and uptime logging. |
+| [Nunchuk driver](modules/nunchuk/nunchuk.c) | Initializes the Wii Nunchuk on LPI2C4 at address `0x52`, polls it every 50 ms, and reports X/Y axes and C/Z buttons through the Linux input subsystem. |
+| [LPUART driver](modules/serial/serial.c) | Configures LPUART3 and LPUART8 through MMIO registers, transmits at 115,200 baud, and exposes each port as a `miscdevice`. Two [userspace tools](tools/) read and reset the transmit counter via `ioctl`. |
+| [Board integration](kernel-patches/) | i.MX93 FRDM support, an ARM64 kernel configuration, a Device Tree description for the Nunchuk, and I²C and UART pin multiplexing. |
 
-## Essais sur la carte
+## On-board tests
 
-- **Nunchuk.** La capture `evtest` montre les appuis et relâchements des boutons C et Z. [Capture](docs/nunchuk-evtest.png)
-- **LPUART.** Minicom reçoit `Hello!` envoyé depuis le périphérique série. Le compteur passe de 0 à 7 après l’écriture, puis revient à 0 après la remise à zéro. [Relevé du lab](docs/essais-carte.md#émission-uart-et-compteur)
+- **Nunchuk.** The `evtest` capture shows presses and releases for the C and Z buttons. [Screenshot](docs/nunchuk-evtest.png)
+- **LPUART.** Minicom received `Hello!` from the serial device. The transmit counter went from 0 to 7 after the write and returned to 0 after the reset. [UART test](docs/board-testing.md#uart-transmission-and-counter)
 
-Le parcours de formation atteint le chapitre **Sleeping and handling interrupts**. Dans la version du pilote série disponible ici, `read()` renvoie `-EINVAL`. La réception par interruption, le tampon circulaire et l’attente bloquante restent à intégrer au dépôt.
+I reached the **Sleeping and handling interrupts** lab. The UART driver's `read()` currently returns `-EINVAL`. Interrupt-driven reception, a ring buffer, and blocking reads remain to be added.
 
-## Compilation
+## Build
 
-Sur la machine de développement, installer `make`, un compilateur hôte et une chaîne de compilation ARM64 avec sa libc pour les utilitaires statiques. Utiliser l’arbre de compilation correspondant au noyau démarré sur la carte, avec sa configuration et son fichier `Module.symvers`. Les [instructions d’intégration](docs/essais-carte.md#préparer-le-noyau) permettent de reconstruire cet arbre à partir de Linux 6.12.103.
+On your development machine, install `make`, a host compiler, and an ARM64 cross-toolchain with a C library for static linking. Use the build tree for the kernel running on the board, including its configuration and `Module.symvers`. You can reproduce that build from Linux 6.12.103. [Kernel preparation](docs/board-testing.md#prepare-the-kernel)
 
 ```bash
-make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KDIR=/chemin/vers/linux
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KDIR=/path/to/linux
 ```
 
-Les modules `.ko` se trouvent sous `modules/` et les exécutables ARM64 sous `tools/`. Le [guide d’essais](docs/essais-carte.md#essayer-les-modules-sur-la-carte) indique comment les charger et les tester.
+The build puts the `.ko` files under `modules/` and the ARM64 executables under `tools/`. [On-board test instructions](docs/board-testing.md#test-the-modules-on-the-board)
 
-## Crédits
+## Credits
 
-Le pilote série et ses utilitaires reprennent les squelettes du lab Bootlin. Le support de base de la carte dérive du Device Tree NXP fourni par Bootlin. Les mentions SPDX des sources et des patches indiquent leurs licences. Les utilitaires adaptés relèvent de la licence CC BY-SA 3.0 des supports du cours. [Dépôt des supports Bootlin](https://github.com/bootlin/training-materials), [licence des supports](https://github.com/bootlin/training-materials/blob/master/LICENSE), [GPL version 2](LICENSE)
+The UART driver and userspace tools build on starter code from the Bootlin labs. The base board support comes from the NXP Device Tree provided by Bootlin. SPDX identifiers in the source files and patches specify the applicable licenses. The adapted userspace tools are covered by the training materials' CC BY-SA 3.0 license. [Bootlin training materials](https://github.com/bootlin/training-materials), [training materials license](https://github.com/bootlin/training-materials/blob/master/LICENSE), [GPL version 2](LICENSE)
