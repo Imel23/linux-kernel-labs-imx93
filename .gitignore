@@ -1,0 +1,13 @@
+# Fichiers générés par Kbuild
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+.tmp_versions/
+Module.symvers
+modules.order
+
+# Exécutables espace utilisateur
+/tools/serial-get-counter
+/tools/serial-reset-counter
